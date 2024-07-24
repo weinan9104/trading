@@ -41,6 +41,7 @@ class TradeAlertController extends Controller
 	{
 		// Log::info("\n".'================================'. "\n".'in_amount : 10000*4/100 = 400. ' . "\n". 'share : 400/50 = 8'. "\n".'================================');
 		$parentTrades = Trade::with('tradeDetail')
+			->where('trade_status', 'open')
 			->where('trade_type', '!=', 'message')
 			->whereNull('exit_price')->whereNull('exit_date')  //open trade
 			->orderBy('created_at','desc')->paginate(10);
@@ -100,6 +101,7 @@ class TradeAlertController extends Controller
 		//for stock's opened trades.  by the trade symbol
 		if($trade_type == 'stock'){
 			$tradeCount = Trade::where([
+				'trade_status' => 'open',
 				'trade_type' => 'stock',
 				'trade_symbol' => $trade_symbol
 			])
@@ -111,6 +113,7 @@ class TradeAlertController extends Controller
 		}else{
 			//for option by the whole content
 			$tradeCount = Trade::where([
+				'trade_status' => 'open',
 				'trade_type' => 'option',
 				'trade_symbol' => $trade_symbol,
 				'expiration_date' => $expiration_date,
@@ -143,6 +146,7 @@ class TradeAlertController extends Controller
 			$tradeObj->company_name = $request->company_name;
 			$tradeObj->position_size = str_replace(',','',$position_size);
 			$tradeObj->trade_description = $trade_description;
+			$tradeObj->trade_status = 'open';
 
 			if($trade_type == 'option'){
 				$tradeObj->trade_option = $trade_option;
@@ -503,15 +507,39 @@ class TradeAlertController extends Controller
 		DB::beginTransaction();
 		try{
 			$tradeObj = Trade::findorFail($closeFormID);
-			$tradeObj->exit_date = $closeExitDate;
-			$tradeObj->exit_price = $closeExitPrice;
-			$tradeObj->close_comment = $closedComments;
+			$tradeObj->trade_status = 'closed';
+			$tradeNewObj = new Trade;
+			$tradeNewObj->trade_type = $tradeObj->trade_type;
+			$tradeNewObj->trade_symbol = $tradeObj->trade_symbol;
+			$tradeNewObj->trade_status = 'closed';
+			$tradeNewObj->symbol_image = $tradeObj->symbol_image;
+			$tradeNewObj->company_name = $tradeObj->company_name;
+			$tradeNewObj->trade_direction = $tradeObj->trade_direction;
+			$tradeNewObj->trade_title =$tradeObj->trade_title;
+			$tradeNewObj->trade_option =$tradeObj->trade_option;
+			$tradeNewObj->expiration_date =$tradeObj->expiration_date;
+			$tradeNewObj->current_price = $tradeObj->current_price;
+			$tradeNewObj->strike_price =$tradeObj->strike_price;
+			$tradeNewObj->entry_price = $tradeObj->entry_price;
+			$tradeNewObj->stop_price = $tradeObj->stop_price;
+			$tradeNewObj->target_price = $tradeObj->target_price;
+			$tradeNewObj->entry_date = $tradeObj->entry_date;
+			$tradeNewObj->share_qty = $tradeObj->share_qty;
+			$tradeNewObj->share_in_amount = $tradeObj->share_in_amount;
+			$tradeNewObj->exit_date = $closeExitDate;
+			$tradeNewObj->exit_price = $closeExitPrice;
+			$tradeNewObj->close_comment = $closedComments;
+			$tradeNewObj->close_image =$tradeObj->close_image;
+			$tradeNewObj->position_size = $tradeObj->position_size;
+			$tradeNewObj->trade_description =$tradeObj->trade_description;
+			$tradeNewObj->chart_image = $tradeObj->chart_image;
+			$tradeNewObj->scheduled_at =$tradeObj->scheduled_at;
 
 			if($request->hasFile('closeImage')){
 				$imageName = time().'.'.$request->closeImage->extension();
 				$request->closeImage->move(public_path('uploads/trade'), $imageName);
 
-				$tradeObj->close_image = 'uploads/trade/' . $imageName;
+				$tradeNewObj->close_image = 'uploads/trade/' . $imageName;
 			}
 
 			// share qty find
@@ -528,7 +556,7 @@ class TradeAlertController extends Controller
 
 				Settings::where('id', $settingsObj->id)->update(['portfolio_size' => $find_portfolio,'investment_amount' => $find_investment_amount]);
 			}
-
+			$tradeNewObj->save();
 			// at time close
 			$tradeDetails = TradeDetail::where('trade_id',$tradeObj->id)->get();
 			if(!is_null($tradeDetails)){
@@ -547,6 +575,23 @@ class TradeAlertController extends Controller
 
 						Settings::where('id', $settingsObjAdd->id)->update(['portfolio_size' => $find_portfolio_add,'investment_amount' => $find_investment_amount_add]);
 					}
+
+					$tradeNewDetails = new TradeDetail;
+					$tradeNewDetails->trade_id = $tradeNewObj->id;
+					$tradeNewDetails->trade_direction = $tradeDetail->trade_direction;
+					$tradeNewDetails->expiration_date = $tradeDetail->expiration_date;
+					$tradeNewDetails->strike_price = $tradeDetail->strike_price;
+					$tradeNewDetails->entry_price = $tradeDetail->entry_price;
+					$tradeNewDetails->stop_price = $tradeDetail->stop_price;
+					$tradeNewDetails->target_price = $tradeDetail->target_price;
+					$tradeNewDetails->entry_date = $tradeDetail->entry_date;
+					$tradeNewDetails->share_qty = $tradeDetail->share_qty;
+					$tradeNewDetails->share_in_amount = $tradeDetail->share_in_amount;
+					$tradeNewDetails->position_size = $tradeDetail->position_size;
+					$tradeNewDetails->trade_description = $tradeDetail->trade_description;
+					$tradeNewDetails->chart_image = $tradeDetail->chart_image;
+					$tradeNewDetails->scheduled_at = $tradeDetail->scheduled_at;
+					$tradeNewDetails->save();
 				}
 			}
 
