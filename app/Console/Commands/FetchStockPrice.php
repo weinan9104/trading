@@ -31,8 +31,8 @@ class FetchStockPrice extends Command
 		$apiKey = 'rVepuhvI6BzfIXsCa6P3JdygCmXAYL7p';
 		$apiDomain = 'https://financialmodelingprep.com/api/v3';
 
-		$openStockTrades = Trade::where('trade_type', 'stock')->whereNull('exit_price')->whereNull('exit_date')->get();
-		$openOptionsTrades = Trade::where('trade_type', 'option')->whereNull('exit_price')->whereNull('exit_date')->get();
+		$openStockTrades = Trade::where('trade_type', 'stock')->where('trade_status','open')->whereNull('exit_price')->whereNull('exit_date')->get();
+		$openOptionsTrades = Trade::where('trade_type', 'option')->where('trade_status','open')->whereNull('exit_price')->whereNull('exit_date')->get();
 		
 		Log::info("Stock Price Fetch Started...");
 

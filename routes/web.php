@@ -17,6 +17,7 @@ use App\Http\Controllers\Backend\RoleController;
 use App\Http\Controllers\Backend\UserController;
 use App\Http\Controllers\Front\AccountController;
 use App\Http\Controllers\Front\PositionmanagementController;
+use App\Http\Controllers\Front\ScriptController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,8 @@ use App\Http\Controllers\Front\PositionmanagementController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('/script', [ScriptController::class, 'index'])->name('script.results');
+
 Route::get('/', [FrontController::class, 'homepage'])->name('front.home');
 Route::get('/news', [FrontController::class, 'news'])->name('front.news');
 Route::get('/learn', [FrontController::class, 'learn'])->name('front.learn');
@@ -68,7 +71,7 @@ Route::group(['middleware' => ['auth', 'auth.timeout'], ['prefix' => 'front']], 
 
     Route::get('/dashboard/main-feed', [PositionManagementController::class, 'mainFeed'])->name('front.main-feed')->middleware('check.subscription.expired');
     Route::get('/dashboard/open-stock-trades', [PositionManagementController::class, 'openStockTrades'])->name('front.open-stock-trades')->middleware('check.subscription.expired');
-    Route::get('/dashboard/closed-stock-trades', [PositionManagementController::class, 'closedStockTrades'])->name('front.closed-stock-trades')->middleware('check.subscription.expired');
+    Route::get('/dashboard/closed-stock-trades', [PositionManagementController::class, 'closedStockTrades'])->name('front.closed-stock-trades');
     Route::get('/dashboard/open-options-trades', [PositionManagementController::class, 'openOptionsTrades'])->name('front.open-options-trades')->middleware('check.subscription.expired');
     Route::get('/dashboard/closed-options-trades', [PositionManagementController::class, 'closedOptionsTrades'])->name('front.closed-options-trades')->middleware('check.subscription.expired');
     Route::get('/dashboard/main-feed/{id}/{type}', [PositionManagementController::class, 'tradeDetail'])->name('front.trade-detail')->middleware('check.subscription.expired');

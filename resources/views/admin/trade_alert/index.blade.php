@@ -143,7 +143,7 @@
                                 find('.price').text('$'+parseFloat(averagePrice).toFixed(2));
 
                                 $('.parent-trade[data-trade-id="{{ $parentTrade->id }}"]').closest('tr').find('.average-price')
-                                .find('.size').text(' ('+totalPercentage * 100+'%)');
+                                .find('.size').text(' ('+parseFloat(totalPercentage * 100).toFixed(2)+'%)');
 
                                 // Show/hide child rows on expand icon click
                                 $(".expand-toggle").off('click').on('click', function() {
@@ -193,7 +193,6 @@
                         <input type="hidden" name="addTradeDirection" id="addTradeDirection" value="" />
                         <input type="hidden" name="addTradeStrikePrice" id="addTradeStrikePrice" value="" />
                         <input type="hidden" name="addExpirationDate" id="addExpirationDate" value="" />
-                        
                         
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="AddEntryDate">Entry Date</label>

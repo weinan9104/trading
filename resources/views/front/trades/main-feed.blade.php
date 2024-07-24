@@ -148,7 +148,7 @@
 									<div class="card-badge w-100 d-flex flex-column align-items-start gap-2 m-0">
 										<div class="top-bar w-100 justify-content-between d-flex align-items-center gap-3 text-uppercase">
 											<p class="mb-0 ">{{ucfirst($trade->trade_type)}} Alert</p>
-											<p class="date-time mb-0"> <span class="date">{{\Carbon\Carbon::parse($trade->updated_at)->format('m/d/Y h:i A')}}</span> </p>
+											<p class="date-time mb-0"> <span class="date">{{\Carbon\Carbon::parse($trade->created_at)->format('m/d/Y h:i A')}}</span> </p>
 										</div>
 										<div class="buy-sell-info d-flex align-items-center gap-1">
 											<p class="title mb-0 mt-0 text-uppercase">

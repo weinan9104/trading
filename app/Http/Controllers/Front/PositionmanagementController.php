@@ -100,6 +100,7 @@ class PositionManagementController extends Controller
             'td.created_at',
             'td.updated_at'
         ])
+        ->where('t.trade_status', 'open')
         ->whereNull('t.exit_price')
         ->whereNull('t.exit_date');
 
@@ -108,7 +109,7 @@ class PositionManagementController extends Controller
             $tradeDetails->where('t.trade_symbol', 'LIKE', '%' . $search . '%');
         }
 
-         $unionQuery = $trades->union($tradeDetails)->orderBy('updated_at', 'desc');
+        $unionQuery = $trades->union($tradeDetails)->orderBy('created_at', 'desc');
 
         // Combine both queries
         $results = $unionQuery->paginate(12);
@@ -124,6 +125,7 @@ class PositionManagementController extends Controller
     public function openStockTrades(Request $request)
     {
         $query = Trade::with('tradeDetail')
+            ->where('trade_status','open')
             ->where('trade_type', 'stock')
             ->whereNull('exit_price')->whereNull('exit_date');  //open trade
 
@@ -191,7 +193,7 @@ class PositionManagementController extends Controller
         't.exit_price', 't.exit_date', 't.trade_description', 't.chart_image', 't.close_comment',
         't.close_image', 't.created_at', 't.updated_at');
 
-         // Handle search query
+        // Handle search query
         $search = $request->input('search');
         if (!empty($search)) {
             $query->where('trade_symbol', 'like', '%' . $search . '%');
@@ -206,6 +208,7 @@ class PositionManagementController extends Controller
     public function openOptionsTrades(Request $request)
     {
         $query = Trade::with('tradeDetail')
+            ->where('trade_status','open')
             ->where('trade_type', 'option')
             ->whereNull('exit_price')->whereNull('exit_date');  //open trade
 
@@ -309,9 +312,9 @@ class PositionManagementController extends Controller
 
     public function generatorReport(){
 
-        $total_open_trades = DB::table('trades')->select('*')->whereIn('trade_type',['stock','option'])->whereNull('exit_price')->whereNull('exit_date')->get()->count(); 
+        $total_open_trades = DB::table('trades')->select('*')->whereIn('trade_type',['stock','option'])->where('trade_status','open')->whereNull('exit_price')->whereNull('exit_date')->get()->count(); 
 
-        $total_closed_trades = DB::table('trades')->select('*')->whereIn('trade_type',['stock','option'])->whereNotNull('exit_price')->whereNotNull('exit_date')->get()->count(); 
+        $total_closed_trades = DB::table('trades')->select('*')->whereIn('trade_type',['stock','option'])->where('trade_status','closed')->whereNotNull('exit_price')->whereNotNull('exit_date')->get()->count(); 
 
         $settings = DB::table('settings')->select('*')->first();
         $this_month = Carbon::now();
@@ -362,7 +365,7 @@ class PositionManagementController extends Controller
             't.exit_price',
             't.exit_date',
         ])
-        ->where('t.trade_direction','buy')->whereIn('t.trade_type',['stock','option'])->whereNotNull('t.exit_price')->whereNotNull('t.exit_date')
+        ->where('t.trade_direction','buy')->whereIn('t.trade_type',['stock','option'])->where('t.trade_status','closed')->whereNotNull('t.exit_price')->whereNotNull('t.exit_date')
         ->groupBy( 't.id', 't.trade_type', 't.trade_title','t.current_price', 't.entry_price', 't.position_size','t.exit_price', 't.exit_date','t.share_qty',
         't.share_in_amount');
         $buy_trades_all_data = $buy_trades->get();
@@ -451,7 +454,7 @@ class PositionManagementController extends Controller
             't.exit_price',
             't.exit_date',
         ])
-        ->where('t.trade_direction','sell')->whereIn('t.trade_type',['stock','option'])->whereNotNull('t.exit_price')->whereNotNull('t.exit_date')
+        ->where('t.trade_direction','sell')->whereIn('t.trade_type',['stock','option'])->where('t.trade_status','closed')->whereNotNull('t.exit_price')->whereNotNull('t.exit_date')
         ->groupBy( 't.id', 't.trade_type', 't.trade_title','t.current_price', 't.entry_price', 't.position_size','t.exit_price', 't.exit_date','t.share_qty',
         't.share_in_amount');
         $sell_trades_all_data = $sell_trades->get();
